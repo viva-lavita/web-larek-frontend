@@ -26,9 +26,7 @@ api.getItems()
 }).catch(error => console.error(error));
 
 
-// при изменении модели данных (первичная установка из api, 
-// либо генерация события по клику- его вызывает изменение данных презентером)
-// перерисовываются все карточки
+// при изменении модели данных (первичная установка из api)
 events.on("items:change", () => {
     const itemElements = model.getItems().map(item => new ItemView(cloneTemplate(galleryTemplate), events).render(item));
     // const previewElements = model.getItems().map(item => new ItemPreviewView(cloneTemplate(previewTemplate), events).render(item));
