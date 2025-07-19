@@ -1,9 +1,9 @@
-import { IApiItems, IItem, IItemServe, IOrder, IOrderServe, OrderError } from '../types';
+import { IItemAPI, IItem, IItemServe, IOrder, IOrderResponse, OrderError } from '../types';
 import { Api, ApiListResponse } from './base/api';
 
 
 // !при получении меняется null на 0, добавляется флаг добавления в корзину пользователем
-export class ApiItems extends Api implements IApiItems {
+export class ItemAPI extends Api implements IItemAPI {
 	readonly cdn: string;
 
 	constructor(baseUrl: string, cdn: string, options: RequestInit = {}) {
@@ -33,9 +33,9 @@ export class ApiItems extends Api implements IApiItems {
 		}));
 	}
 
-	makeOrder(order: IOrder): Promise<IOrderServe | OrderError> {
+	makeOrder(order: IOrder): Promise<IOrderResponse | OrderError> {
 		return this.post('/order', order)
-			.then((data: IOrderServe) => data)
+			.then((data: IOrderResponse) => data)
 			.catch((error: any) => {
 				throw new OrderError(error);
 			});
