@@ -19,6 +19,7 @@ export interface IItemServe {
 export interface IItem extends IItemServe {
 	price: number;
 	selected: boolean;
+    index?: number;
 }
 
 export interface IItemsData {
@@ -38,6 +39,7 @@ export interface IBasketData {
     totalPrice: number;
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
+    clearBasket(): void;
 }
 
 export type ITypePayment = 'cash' | 'online';
@@ -52,12 +54,15 @@ export interface IOrderContactForm extends IOrderForm {
     phone: string;
 }
 
-export interface IOrderData extends IOrderForm, IOrderContactForm {
+export interface IOrder extends IOrderForm, IOrderContactForm {
     total: number;
     items: IItem['id'][];
+}
+
+export interface IOrderData extends IOrder {
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
-	clearOrderItems(): void;
+	clearOrder(): void;
 }
 
 export interface IOrderResponse {
@@ -78,6 +83,8 @@ export interface IAppData {
 	selectItem: (item: IItem) => void;
 	setPreview: (item: IItem) => void;
     setPayment: (payment: ITypePayment) => void;
-    setOrderField: (field: keyof Pick<IOrderData, 'email' | 'phone' | 'address'>, value: string) => void;
+    getOrder: () => IOrder;
+    setOrderField: (field: keyof Pick<IOrderData, 'payment' |'address'>, value: string) => void;
+    setOrderFieldContacts: (field: keyof Pick<IOrderData, 'email' | 'phone'>, value: string) => void;
     validateOrder: () => boolean;
 }

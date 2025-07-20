@@ -6,6 +6,7 @@ import {
 	IItemsData,
 	IOrderData,
 	ITypePayment,
+    IOrder,
 } from '../types';
 import { IEvents } from './base/events';
 import { Model } from './base/Model';
@@ -37,6 +38,7 @@ export class ItemsData implements IItemsData {
 export class BasketData implements IBasketData {
 	protected _items: IItem[] = [];
 	protected _totalPrice: number = 0;
+    protected _index = 1;
 
 	get items(): IItem[] {
 		return this._items;
@@ -44,9 +46,12 @@ export class BasketData implements IBasketData {
 
 	get totalPrice(): number {
 		return this._totalPrice;
+        // другой вариант, без кэширования
+        // return this._items.reduce((acc, item) => acc + item.price, 0);
 	}
 
 	addItem(item: IItem): void {
+        item.index = this._index++;
 		this._items.push(item);
 		this._totalPrice += item.price;
 	}
@@ -56,13 +61,26 @@ export class BasketData implements IBasketData {
 		if (index !== -1) {
 			this._items.splice(index, 1);
 			this._totalPrice -= item.price;
+            // обнуляем параметр, пересчитываем индексы товаров,
+            // чтобы были последовательными
+            item.index = null;
+            this._index--;
+            this._items.forEach((item, index) => item.index = index + 1);
 		}
 	}
+
+    clearBasket(): void {
+        this.items.forEach((item) => item.index = null);
+        this._items = [];
+        this._totalPrice = 0;
+        this._index = 1;
+    }
 }
 
 
+// работа с добавлением и удалением товара в корзину только через интерфейс
 export class OrderData {
-	payment: ITypePayment = 'cash';
+	payment: ITypePayment = 'online';
 	email: string = '';
 	phone: string = '';
 	address: string = '';
@@ -93,10 +111,21 @@ export class OrderData {
 		}
 	}
 
-	clearOrderItems(): void {
+	clearOrder(): void {
 		this._items = [];
 		this._total = 0;
 	}
+
+    getOrder(): IOrder {
+        return {
+            payment: this.payment,
+            email: this.email,
+            phone: this.phone,
+            address: this.address,
+            total: this._total,
+            items: this._items,
+        };
+    }
 }
 
 export class AppData extends Model<IAppData> implements IAppData {
@@ -141,6 +170,14 @@ export class AppData extends Model<IAppData> implements IAppData {
         return this._basket.items;
     }
 
+    get totalPrice(): number {
+        return this._basket.totalPrice;
+    }
+
+    getOrder(): IOrder {
+        return this._order.getOrder();
+    }
+
 	setCatalog(items: IItem[]): void {
 		this._itemsData.items = items;
         this.emitChanges('items:change');
@@ -168,20 +205,40 @@ export class AppData extends Model<IAppData> implements IAppData {
 	}
 
 	setOrderField(
-		field: keyof Pick<IOrderData, 'email' | 'phone' | 'address'>,
+		field: keyof Pick<IOrderData, 'payment' | 'address'>,
 		value: string
 	): void {
-		this._order[field] = value;
+        if (field === 'payment') {
+            this.setPayment(value as ITypePayment)
+        } else this._order[field] = value;
 		if (this.validateOrder()) this.emitChanges('order:valid');
 	}
 
+    setOrderFieldContacts(field: keyof Pick<IOrderData, 'email' | 'phone'>, value: string): void {
+        this._order[field] = value;
+        if (this.validateContacts()) this.emitChanges('contacts:valid');
+    }
+
 	validateOrder(): boolean {
 		const errors: typeof this.formErrors = {};
-		if (!this._order.email) errors.email = 'Введите email';
-		if (!this._order.phone) errors.phone = 'Введите телефон';
 		if (!this._order.address) errors.address = 'Введите адрес';
 		this.formErrors = errors;
 		this.events.emit('formErrors:change', this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
+
+    validateContacts(): boolean {
+		const errors: typeof this.formErrors = {};
+		if (!this._order.email) errors.email = 'Введите email';
+		if (!this._order.phone) errors.phone = 'Введите телефон';
+		this.formErrors = errors;
+		this.events.emit('formErrors:change', this.formErrors);
+		return Object.keys(errors).length === 0;
+	}
+
+    clearBasket(): void {
+        this._basket.clearBasket();
+        this._order.clearOrder();
+        this.emitChanges('items:change');
+    }
 }

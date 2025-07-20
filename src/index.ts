@@ -15,7 +15,8 @@ import { Basket } from './components/common/Basket';
 import { OrderForm } from './components/View/OrderForm';
 import { ContactForm } from './components/View/ContactForm';
 import { ItemView } from './components/View/ItemView';
-import { IItem } from './types';
+import { IItem, IOrderData, IOrderResponse, ITypePayment } from './types';
+import { Success } from './components/common/Succes';
 
 const api = new ItemAPI(API_URL, CDN_URL);
 const events = new EventEmitter();
@@ -54,45 +55,122 @@ const contacts = new ContactForm(cloneTemplate(contactsTemplate), events);
 events.on('items:change', () => {
 	page.cards = appData.items.map((item) =>
 		new ItemView(cloneTemplate(cardCatalogTemplate), {
+			// слушатель на карточку
 			onClick: () => events.emit('card:select', item),
 		}).render(item)
 	);
 	page.counter = appData.basket.length;
+	console.log(appData.items);
 });
 
 // Открытие модалки
 events.on('card:select', (item: IItem) => {
-    appData.setPreview(item);
+	appData.setPreview(item);
 });
 
 // Отрисовка модалки
 events.on('preview:change', (item: IItem) => {
-    const card = new ItemView(cloneTemplate(cardPreviewTemplate), {
-        // слушатель на кнопку
-        onClick: () => {
-            if (!item.price) return;
-            if (item.selected) {
-                appData.unselectItem(item);
-            } else {
-                appData.selectItem(item);
-            }
-            events.emit('preview:change', item);
-            events.emit('items:change', item);
-        },
-    });
+	const card = new ItemView(cloneTemplate(cardPreviewTemplate), {
+		// слушатель на кнопку
+		onClick: () => {
+			if (!item.price) return;
+			if (item.selected) {
+				appData.unselectItem(item);
+			} else {
+				appData.selectItem(item);
+			}
+			// перерисовка текущей страницы и главной страницы
+			events.emit('preview:change', item);
+			events.emit('items:change', item);
+		},
+	});
 
-    card.btnDisabled = !item.price;
-    if (!item.price) {
-        card.btnText = 'Недоступно';
-    } else if (item.selected) {
-        card.btnText = 'В корзине';
-    } else {
-        card.btnText = 'Купить';
-    }
+	card.btnDisabled = !item.price;
+	if (!item.price) {
+		card.btnText = 'Недоступно';
+	} else if (item.selected) {
+		card.btnText = 'В корзине';
+	} else {
+		card.btnText = 'Купить';
+	}
 
-    modal.content = card.render(item);
-    modal.open();
+	modal.content = card.render(item);
+	modal.open();
 });
+
+events.on('basket:open', () => {
+	const items = appData.basket.map((item) =>
+		new ItemView(cloneTemplate(cardBasketTemplate), {
+			onClick: () => events.emit('card:unselect', item),
+		}).render(item)
+	);
+	const total = appData.totalPrice;
+	modal.content = basket.render({ items, total });
+	modal.open();
+});
+
+events.on('card:unselect', (item: IItem) => {
+	appData.unselectItem(item);
+	events.emit('basket:open');
+});
+
+events.on('order:open', () => {
+    modal.content = order.render({
+        valid: false,
+        errors: []
+    });
+    modal.open();
+})
+
+events.on('orderForm:change', ( changedField: { field: keyof Pick<IOrderData, 'payment' | 'address'>, value: string }) => {
+    appData.setOrderField(changedField.field, changedField.value);
+})
+
+events.on('contactForm:change', ( changedField: { field: keyof Pick<IOrderData, 'email' | 'phone'>, value: string }) => {
+    appData.setOrderFieldContacts(changedField.field, changedField.value);
+})
+
+events.on('order:valid', () => {
+    modal.content = order.render({
+        valid: true,
+        errors: []
+    });
+    modal.open();
+})
+
+events.on('contacts:valid', () => {
+    modal.content = contacts.render({
+        valid: true,
+        errors: []
+    });
+    modal.open();
+})
+
+events.on('order:submit', () => {
+    modal.content = contacts.render({
+        valid: false,
+        errors: []
+    });
+    modal.open();
+})
+
+events.on('contacts:submit', () => {
+    const orderData = appData.getOrder();
+  
+    const success = new Success(cloneTemplate(successTemplate), {
+      onClick: () => modal.close()
+    });
+  
+    api.makeOrder(orderData)
+      .then((result: IOrderResponse) => {
+        success.total = result.total.toString();
+        modal.render({ content: success.render({}) });
+        appData.clearBasket();
+      })
+    .catch((err) => {
+      console.error(err);
+    })
+  });
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {

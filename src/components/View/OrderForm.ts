@@ -33,10 +33,13 @@ export class OrderForm extends Form<IOrderForm> {
 
         this._addressInput.addEventListener('input', () => {
             this.events.emit('orderForm:change', {
-                address: this._addressInput.value,
+                field: 'address',
+                value: this._addressInput.value
             });
         });
+        this.setPaymentMethod('online');
     }
+
     protected setPaymentMethod(method: ITypePayment) {
         this.toggleClass(this._btnPaymentOnline, 'button_alt-active', method === 'online');
         this.toggleClass(this._btnPaymentCash, 'button_alt-active', method === 'cash');
