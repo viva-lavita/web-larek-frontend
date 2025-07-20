@@ -1,4 +1,4 @@
-import { IItemAPI, IItem, IItemServe, IOrder, IOrderResponse, OrderError } from '../types';
+import { IItemAPI, IItem, IItemServe, IOrderData, IOrderResponse, OrderError } from '../types';
 import { Api, ApiListResponse } from './base/api';
 
 
@@ -33,7 +33,7 @@ export class ItemAPI extends Api implements IItemAPI {
 		}));
 	}
 
-	makeOrder(order: IOrder): Promise<IOrderResponse | OrderError> {
+	makeOrder(order: IOrderData): Promise<IOrderResponse | OrderError> {
 		return this.post('/order', order)
 			.then((data: IOrderResponse) => data)
 			.catch((error: any) => {

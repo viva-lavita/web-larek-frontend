@@ -1,3 +1,5 @@
+import { IEvents } from "../components/base/events";
+
 type categoryType =
 	| 'софт-скил'
 	| 'другое'
@@ -28,22 +30,31 @@ export interface IItemsData {
 export interface IItemAPI {
 	getItems(): Promise<IItem[]>;
 	getItem(id: string): Promise<IItem>;
-	makeOrder(order: IOrder): Promise<IOrderResponse | OrderError>;
+	makeOrder(order: IOrderData): Promise<IOrderResponse | OrderError>;
 }
 
-export interface IBasket {
+export interface IBasketData {
 	items: IItem[];
+    totalPrice: number;
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
 }
 
-export type ITypePayment = 'cash' | 'card';
+export type ITypePayment = 'cash' | 'online';
 
-export interface IOrder {
-	payment: ITypePayment;
-	email: string;
-	phone: string;
-	address: string;
+export interface IOrderForm {
+    payment: ITypePayment;
+    address: string;
+}
+
+export interface IOrderContactForm extends IOrderForm {
+    email: string;
+    phone: string;
+}
+
+export interface IOrderData extends IOrderForm, IOrderContactForm {
+    total: number;
+    items: IItem['id'][];
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
 	clearOrderItems(): void;
@@ -58,12 +69,15 @@ export class OrderError extends Error {
 	error: string;
 }
 
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+export type FormErrors = Partial<Record<keyof IOrderData, string>>;
 
 export interface IAppData {
+    items: IItem[];
 	preview: IItem | null;
 	formErrors: FormErrors;
-	selectItem: (id: string) => void;
-	unselectItem: (id: string) => void;
+	selectItem: (item: IItem) => void;
 	setPreview: (item: IItem) => void;
+    setPayment: (payment: ITypePayment) => void;
+    setOrderField: (field: keyof Pick<IOrderData, 'email' | 'phone' | 'address'>, value: string) => void;
+    validateOrder: () => boolean;
 }
