@@ -1,5 +1,3 @@
-import { IEvents } from "../components/base/events";
-
 type categoryType =
 	| 'софт-скил'
 	| 'другое'
@@ -19,7 +17,7 @@ export interface IItemServe {
 export interface IItem extends IItemServe {
 	price: number;
 	selected: boolean;
-    index?: number;
+	index?: number;
 }
 
 export interface IItemsData {
@@ -36,33 +34,34 @@ export interface IItemAPI {
 
 export interface IBasketData {
 	items: IItem[];
-    totalPrice: number;
+	totalPrice: number;
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
-    clearBasket(): void;
+	clearBasket(): void;
 }
 
 export type ITypePayment = 'cash' | 'online';
 
 export interface IOrderForm {
-    payment: ITypePayment;
-    address: string;
+	payment: ITypePayment;
+	address: string;
 }
 
-export interface IOrderContactForm extends IOrderForm {
-    email: string;
-    phone: string;
+export interface IOrderContactForm {
+	email: string;
+	phone: string;
 }
 
 export interface IOrder extends IOrderForm, IOrderContactForm {
-    total: number;
-    items: IItem['id'][];
+	total: number;
+	items: IItem['id'][];
 }
 
 export interface IOrderData extends IOrder {
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
 	clearOrder(): void;
+    getOrder(): IOrder;
 }
 
 export interface IOrderResponse {
@@ -74,17 +73,29 @@ export class OrderError extends Error {
 	error: string;
 }
 
-export type FormErrors = Partial<Record<keyof IOrderData, string>>;
+export type FormErrors = Record<string, string>;
 
 export interface IAppData {
-    items: IItem[];
+	items: IItem[];
+    basket: IItem[];
+    totalPrice: number;
 	preview: IItem | null;
 	formErrors: FormErrors;
-	selectItem: (item: IItem) => void;
-	setPreview: (item: IItem) => void;
-    setPayment: (payment: ITypePayment) => void;
     getOrder: () => IOrder;
-    setOrderField: (field: keyof Pick<IOrderData, 'payment' |'address'>, value: string) => void;
-    setOrderFieldContacts: (field: keyof Pick<IOrderData, 'email' | 'phone'>, value: string) => void;
-    validateOrder: () => boolean;
+    setCatalog: (items: IItem[]) => void;
+	selectItem: (item: IItem) => void;
+    unselectItem: (item: IItem) => void;
+	setPreview: (item: IItem) => void;
+	setPayment: (payment: ITypePayment) => void;
+	setOrderField: (
+		field: keyof Pick<IOrderData, 'payment' | 'address'>,
+		value: string
+	) => void;
+	setOrderFieldContacts: (
+		field: keyof Pick<IOrderData, 'email' | 'phone'>,
+		value: string
+	) => void;
+	validateOrder: () => boolean;
+    validateContacts: () => boolean;
+    clearBasket: () => void;
 }

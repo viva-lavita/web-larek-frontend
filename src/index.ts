@@ -15,7 +15,15 @@ import { Basket } from './components/common/Basket';
 import { OrderForm } from './components/View/OrderForm';
 import { ContactForm } from './components/View/ContactForm';
 import { ItemView } from './components/View/ItemView';
-import { IItem, IOrderData, IOrderResponse, ITypePayment } from './types';
+import {
+	FormErrors,
+	IItem,
+	IOrderContactForm,
+	IOrderData,
+	IOrderForm,
+	IOrderResponse,
+	ITypePayment,
+} from './types';
 import { Success } from './components/common/Succes';
 
 const api = new ItemAPI(API_URL, CDN_URL);
@@ -115,62 +123,91 @@ events.on('card:unselect', (item: IItem) => {
 });
 
 events.on('order:open', () => {
-    modal.content = order.render({
-        valid: false,
-        errors: []
-    });
-    modal.open();
-})
+	modal.content = order.render({
+		valid: false,
+		errors: [],
+	});
+	modal.open();
+});
 
-events.on('orderForm:change', ( changedField: { field: keyof Pick<IOrderData, 'payment' | 'address'>, value: string }) => {
-    appData.setOrderField(changedField.field, changedField.value);
-})
+events.on(
+	'orderForm:change',
+	(changedField: {
+		field: keyof Pick<IOrderData, 'payment' | 'address'>;
+		value: string;
+	}) => {
+		appData.setOrderField(changedField.field, changedField.value);
+	}
+);
 
-events.on('contactForm:change', ( changedField: { field: keyof Pick<IOrderData, 'email' | 'phone'>, value: string }) => {
-    appData.setOrderFieldContacts(changedField.field, changedField.value);
-})
+events.on(
+	'contactForm:change',
+	(changedField: {
+		field: keyof Pick<IOrderData, 'email' | 'phone'>;
+		value: string;
+	}) => {
+		appData.setOrderFieldContacts(changedField.field, changedField.value);
+	}
+);
 
 events.on('order:valid', () => {
-    modal.content = order.render({
-        valid: true,
-        errors: []
-    });
-    modal.open();
-})
+	modal.content = order.render({
+		valid: true,
+		errors: [],
+	});
+	modal.open();
+});
 
 events.on('contacts:valid', () => {
-    modal.content = contacts.render({
-        valid: true,
-        errors: []
-    });
-    modal.open();
-})
+	modal.content = contacts.render({
+		valid: true,
+		errors: [],
+	});
+	modal.open();
+});
 
 events.on('order:submit', () => {
-    modal.content = contacts.render({
-        valid: false,
-        errors: []
-    });
-    modal.open();
-})
+	modal.content = contacts.render({
+		valid: false,
+		errors: [],
+	});
+	modal.open();
+});
 
 events.on('contacts:submit', () => {
-    const orderData = appData.getOrder();
-  
-    const success = new Success(cloneTemplate(successTemplate), {
-      onClick: () => modal.close()
-    });
-  
-    api.makeOrder(orderData)
-      .then((result: IOrderResponse) => {
-        success.total = result.total.toString();
-        modal.render({ content: success.render({}) });
-        appData.clearBasket();
-      })
-    .catch((err) => {
-      console.error(err);
-    })
-  });
+	const orderData = appData.getOrder();
+
+	const success = new Success(cloneTemplate(successTemplate), {
+		onClick: () => modal.close(),
+	});
+
+	api
+		.makeOrder(orderData)
+		.then((result: IOrderResponse) => {
+			success.total = result.total.toString();
+			modal.render({ content: success.render({}) });
+			appData.clearBasket();
+		})
+		.catch((err) => {
+			console.error(err);
+		});
+});
+
+events.on('formErrorsOrder:change', (errors: Partial<IOrderForm>) => {
+	const { payment, address } = errors;
+	order.valid = !payment && !address;
+	order.errors = Object.values({ payment, address })
+		.filter((i) => !!i)
+		.join('; ');
+});
+
+events.on('formErrorsContacts:change', (errors: Partial<IOrderContactForm>) => {
+	const { email, phone } = errors;
+	contacts.valid = !email && !phone;
+	contacts.errors = Object.values({ phone, email })
+		.filter((i) => !!i)
+		.join('; ');
+});
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {

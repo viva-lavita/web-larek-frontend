@@ -78,8 +78,8 @@ export class BasketData implements IBasketData {
 }
 
 
-// работа с добавлением и удалением товара в корзину только через интерфейс
-export class OrderData {
+// добавление и удаление товара в корзину только через интерфейс
+export class OrderData implements IOrderData {
 	payment: ITypePayment = 'online';
 	email: string = '';
 	phone: string = '';
@@ -223,7 +223,7 @@ export class AppData extends Model<IAppData> implements IAppData {
 		const errors: typeof this.formErrors = {};
 		if (!this._order.address) errors.address = 'Введите адрес';
 		this.formErrors = errors;
-		this.events.emit('formErrors:change', this.formErrors);
+		this.events.emit('formErrorsOrder:change', this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 
@@ -232,7 +232,7 @@ export class AppData extends Model<IAppData> implements IAppData {
 		if (!this._order.email) errors.email = 'Введите email';
 		if (!this._order.phone) errors.phone = 'Введите телефон';
 		this.formErrors = errors;
-		this.events.emit('formErrors:change', this.formErrors);
+		this.events.emit('formErrorsContacts:change', this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 
