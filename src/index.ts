@@ -68,7 +68,6 @@ events.on('items:change', () => {
 		}).render(item)
 	);
 	page.counter = appData.basket.length;
-	console.log(appData.items);
 });
 
 // Открытие модалки
