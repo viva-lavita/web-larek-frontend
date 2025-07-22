@@ -52,10 +52,11 @@ export interface IOrderContactForm {
 	phone: string;
 }
 
-export type IOrder = IOrderForm & IOrderContactForm & {
-    total: number;
-    items: IItem['id'][];
-}
+export type IOrder = IOrderForm &
+	IOrderContactForm & {
+		total: number;
+		items: IItem['id'][];
+	};
 
 export interface IOrderData extends IOrder {
 	addItem(item: IItem): void;
@@ -65,9 +66,9 @@ export interface IOrderData extends IOrder {
 }
 
 export type IOrderResponse = {
-    id: string;
-    total: number;
-}
+	id: string;
+	total: number;
+};
 
 export interface IOrderError extends Error {
 	error: string;
