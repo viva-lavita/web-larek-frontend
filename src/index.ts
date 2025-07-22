@@ -106,6 +106,7 @@ events.on('preview:change', (item: IItem) => {
 	modal.open();
 });
 
+// Отрисовка корзины
 events.on('basket:open', () => {
 	const items = appData.basket.map((item) =>
 		new ItemView(cloneTemplate(cardBasketTemplate), {
@@ -117,11 +118,13 @@ events.on('basket:open', () => {
 	modal.open();
 });
 
+// Удаление из корзины
 events.on('card:unselect', (item: IItem) => {
 	appData.unselectItem(item);
 	events.emit('basket:open');
 });
 
+// Отрисовка формы
 events.on('order:open', () => {
 	modal.content = order.render({
 		valid: false,
@@ -130,6 +133,7 @@ events.on('order:open', () => {
 	modal.open();
 });
 
+// Обработка ввода данных введенных пользователем
 events.on(
 	'orderForm:change',
 	(changedField: {
@@ -140,6 +144,7 @@ events.on(
 	}
 );
 
+// Обработка ввода данных введенных пользователем
 events.on(
 	'contactForm:change',
 	(changedField: {
@@ -150,6 +155,25 @@ events.on(
 	}
 );
 
+// Перерисовка подсказок валидации
+events.on('formErrorsOrder:change', (errors: Partial<IOrderForm>) => {
+	const { payment, address } = errors;
+	order.valid = !payment && !address;
+	order.errors = Object.values({ payment, address })
+		.filter((i) => !!i)
+		.join('; ');
+});
+
+// Перерисовка подсказок валидации
+events.on('formErrorsContacts:change', (errors: Partial<IOrderContactForm>) => {
+	const { email, phone } = errors;
+	contacts.valid = !email && !phone;
+	contacts.errors = Object.values({ phone, email })
+		.filter((i) => !!i)
+		.join('; ');
+});
+
+// Перерисовка при заполнении пользователем, разблокировка кнопки сабмита
 events.on('order:valid', () => {
 	modal.content = order.render({
 		valid: true,
@@ -158,6 +182,7 @@ events.on('order:valid', () => {
 	modal.open();
 });
 
+// Перерисовка при заполнении пользователем, разблокировка кнопки сабмита
 events.on('contacts:valid', () => {
 	modal.content = contacts.render({
 		valid: true,
@@ -166,6 +191,7 @@ events.on('contacts:valid', () => {
 	modal.open();
 });
 
+// Открытие второй формы после сабмита первой
 events.on('order:submit', () => {
 	modal.content = contacts.render({
 		valid: false,
@@ -174,6 +200,7 @@ events.on('order:submit', () => {
 	modal.open();
 });
 
+// Отправка заказа и открытие финального экрана с уведомлением об успешном заказе
 events.on('contacts:submit', () => {
 	const orderData = appData.getOrder();
 
@@ -193,22 +220,6 @@ events.on('contacts:submit', () => {
 		});
 });
 
-events.on('formErrorsOrder:change', (errors: Partial<IOrderForm>) => {
-	const { payment, address } = errors;
-	order.valid = !payment && !address;
-	order.errors = Object.values({ payment, address })
-		.filter((i) => !!i)
-		.join('; ');
-});
-
-events.on('formErrorsContacts:change', (errors: Partial<IOrderContactForm>) => {
-	const { email, phone } = errors;
-	contacts.valid = !email && !phone;
-	contacts.errors = Object.values({ phone, email })
-		.filter((i) => !!i)
-		.join('; ');
-});
-
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {
 	page.locked = true;
@@ -219,6 +230,8 @@ events.on('modal:close', () => {
 	page.locked = false;
 });
 
+
+// Загрузка каталога
 api
 	.getItems()
 	.then((items) => appData.setCatalog(items))

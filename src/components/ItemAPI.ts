@@ -1,6 +1,10 @@
-import { IItemAPI, IItem, IItemServe, IOrderData, IOrderResponse, OrderError, IOrder } from '../types';
+import { IItemAPI, IItem, IItemServe, IOrderData, IOrderResponse, IOrderError, IOrder } from '../types';
 import { Api, ApiListResponse } from './base/api';
 
+
+class OrderError extends Error implements IOrderError {
+	error: string;
+}
 
 // !при получении меняется null на 0, добавляется флаг добавления в корзину пользователем
 export class ItemAPI extends Api implements IItemAPI {
@@ -22,8 +26,7 @@ export class ItemAPI extends Api implements IItemAPI {
 		);
 	}
 
-	// вроде не понадобиться
-	// TODO: удалить
+	// в текущей реализации не используется
 	getItem(id: string): Promise<IItem> {
 		return this.get('/product/' + id).then((data: IItemServe) => ({
 			...data,
@@ -33,7 +36,7 @@ export class ItemAPI extends Api implements IItemAPI {
 		}));
 	}
 
-	makeOrder(order: IOrder): Promise<IOrderResponse | OrderError> {
+	makeOrder(order: IOrder): Promise<IOrderResponse | IOrderError> {
 		return this.post('/order', order)
 			.then((data: IOrderResponse) => data)
 			.catch((error: any) => {

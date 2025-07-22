@@ -46,13 +46,5 @@ export class ContactForm extends Form<IOrderContactForm> {
             value: value,
         });
     }
-
-    enableSubmitButton() {
-        this._submitButton.disabled = false;
-    }
-
-    disableSubmitButton() {
-        this._submitButton.disabled = true;
-    }
 }
 

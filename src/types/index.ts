@@ -5,20 +5,20 @@ type categoryType =
 	| 'кнопка'
 	| 'хардскил';
 
-export interface IItemServe {
+export type IItemServe = {
 	id: string;
 	title: string;
 	price: number | null;
 	description: string;
 	image: string;
 	category: categoryType;
-}
+};
 
-export interface IItem extends IItemServe {
+export type IItem = IItemServe & {
 	price: number;
 	selected: boolean;
 	index?: number;
-}
+};
 
 export interface IItemsData {
 	items: IItem[];
@@ -29,7 +29,7 @@ export interface IItemsData {
 export interface IItemAPI {
 	getItems(): Promise<IItem[]>;
 	getItem(id: string): Promise<IItem>;
-	makeOrder(order: IOrderData): Promise<IOrderResponse | OrderError>;
+	makeOrder(order: IOrderData): Promise<IOrderResponse | IOrderError>;
 }
 
 export interface IBasketData {
@@ -52,24 +52,24 @@ export interface IOrderContactForm {
 	phone: string;
 }
 
-export interface IOrder extends IOrderForm, IOrderContactForm {
-	total: number;
-	items: IItem['id'][];
+export type IOrder = IOrderForm & IOrderContactForm & {
+    total: number;
+    items: IItem['id'][];
 }
 
 export interface IOrderData extends IOrder {
 	addItem(item: IItem): void;
 	removeItem(item: IItem): void;
 	clearOrder(): void;
-    getOrder(): IOrder;
+	getOrder(): IOrder;
 }
 
-export interface IOrderResponse {
-	id: string;
-	total: number;
+export type IOrderResponse = {
+    id: string;
+    total: number;
 }
 
-export class OrderError extends Error {
+export interface IOrderError extends Error {
 	error: string;
 }
 
@@ -77,14 +77,14 @@ export type FormErrors = Record<string, string>;
 
 export interface IAppData {
 	items: IItem[];
-    basket: IItem[];
-    totalPrice: number;
+	basket: IItem[];
+	totalPrice: number;
 	preview: IItem | null;
 	formErrors: FormErrors;
-    getOrder: () => IOrder;
-    setCatalog: (items: IItem[]) => void;
+	getOrder: () => IOrder;
+	setCatalog: (items: IItem[]) => void;
 	selectItem: (item: IItem) => void;
-    unselectItem: (item: IItem) => void;
+	unselectItem: (item: IItem) => void;
 	setPreview: (item: IItem) => void;
 	setPayment: (payment: ITypePayment) => void;
 	setOrderField: (
@@ -96,6 +96,6 @@ export interface IAppData {
 		value: string
 	) => void;
 	validateOrder: () => boolean;
-    validateContacts: () => boolean;
-    clearBasket: () => void;
+	validateContacts: () => boolean;
+	clearBasket: () => void;
 }
