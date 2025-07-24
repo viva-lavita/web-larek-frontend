@@ -15,7 +15,6 @@ export type IItemServe = {
 };
 
 export type IItem = IItemServe & {
-	price: number;
 	selected: boolean;
 	index?: number;
 };

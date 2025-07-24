@@ -46,7 +46,7 @@ export class ItemView extends Component<HTMLElement> {
 	}
 
 	set price(value: number) {
-		if (value === 0) {
+		if (value === null) {
 			this.setText(this._price, 'Бесценно');
 		} else {
 			this.setText(this._price, `${String(value)} синапсов`);

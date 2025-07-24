@@ -47,6 +47,8 @@ export class BasketData implements IBasketData {
 	get totalPrice(): number {
 		return this._totalPrice;
         // другой вариант, без кэширования
+        // для бесценных товаров приходит null, но такие нельзя положить в корзину
+        // везде расчет без учета null
         // return this._items.reduce((acc, item) => acc + item.price, 0);
 	}
 
@@ -96,7 +98,6 @@ export class OrderData implements IOrderData {
 	}
 
 	addItem(item: IItem): void {
-		if (item.price === 0) return;
 		if (!this._items.includes(item.id)) {
 			this._items.push(item.id);
 			this._total += item.price;

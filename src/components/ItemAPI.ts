@@ -6,7 +6,6 @@ class OrderError extends Error implements IOrderError {
 	error: string;
 }
 
-// !при получении меняется null на 0, добавляется флаг добавления в корзину пользователем
 export class ItemAPI extends Api implements IItemAPI {
 	readonly cdn: string;
 
@@ -19,7 +18,6 @@ export class ItemAPI extends Api implements IItemAPI {
 		return this.get('/product/').then((data: ApiListResponse<IItemServe>) =>
 			data.items.map(item => ({
 				...item,
-				price: item.price || 0,
 				image: this.cdn + item.image,
 				selected: false,
 			}))
@@ -30,7 +28,6 @@ export class ItemAPI extends Api implements IItemAPI {
 	getItem(id: string): Promise<IItem> {
 		return this.get('/product/' + id).then((data: IItemServe) => ({
 			...data,
-			price: data.price || 0,
 			image: this.cdn + data.image,
 			selected: false,
 		}));

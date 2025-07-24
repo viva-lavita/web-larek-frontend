@@ -80,15 +80,16 @@ events.on('preview:change', (item: IItem) => {
 	const card = new ItemView(cloneTemplate(cardPreviewTemplate), {
 		// слушатель на кнопку
 		onClick: () => {
+			// для бесценных товаров
 			if (!item.price) return;
 			if (item.selected) {
 				appData.unselectItem(item);
 			} else {
 				appData.selectItem(item);
 			}
-			// перерисовка текущей страницы и главной страницы
+			// перерисовка текущей страницы и счетчика корзины на главной странице
+			page.counter = appData.basket.length;
 			events.emit('preview:change', item);
-			events.emit('items:change', item);
 		},
 	});
 
@@ -126,7 +127,7 @@ events.on('card:unselect', (item: IItem) => {
 // Отрисовка формы
 events.on('order:open', () => {
 	modal.content = order.render({
-		valid: false,
+		valid: appData.validateOrder(),
 		errors: [],
 	});
 	modal.open();
@@ -193,7 +194,7 @@ events.on('contacts:valid', () => {
 // Открытие второй формы после сабмита первой
 events.on('order:submit', () => {
 	modal.content = contacts.render({
-		valid: false,
+		valid: appData.validateContacts(),
 		errors: [],
 	});
 	modal.open();
